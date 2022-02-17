@@ -1,80 +1,37 @@
 let express = require("express");
-let dbo = require("./db/conn");
 let app = express();
+let db = require("./database/connection")
 
 //var app = require('express')();
 let http = require('http').createServer(app);
 let io = require('socket.io')(http);
 
-
-
-
-
-
-
 var port = process.env.PORT || 8080;
+var res_back = null
 
 app.use(express.static(__dirname + '/public'));
-app.use(express.json());
+app.use(express.json())
 
-
-app.get("/test", function (request, response) {
-  var user_name = request.query.user_name;
-  response.end("Hello " + user_name + "!");
-});
-
-
-let id = 1;
-
-const projects = [
-  {
-    id: id,
-    title: "project" + id,
-    info:`This is my work ${id} I am crated`,
-    img: null,
-  },
-  {
-    id: ++id,
-    title: "project" + id,
-    info:`TThis is my work ${id} I am crated`,
-    img: null,
-  },
-  {
-    id: ++id,
-    title: "project" + id,
-    info:`This is my work ${id} I am crating here`,
-    img: null,
-  },
-
-]
-
-
-
-app.get("/projects", function (request, response) {
-  dbo.getDb.collection('projects').find({}).toArray(function(err, res){
-    if (err)
+app.get("/init", (req, response) => {
+  console.log('-> server recv: init')
+  db.getDatabase().collection("page-content").find({}).toArray(function(err, res){
+    if(err) {
       throw err
+    }
+    res_back = res
     response.send(res)
-  });
-  response.json();
+  })
 });
 
-app.post("/projects", function (request, response) {
-  //add some validation logic
-  const project = request.body;
-  console.log(JSON.stringify(project));
-  if(project){
-      projects.push(project);
+app.get("/two", (req, res) => {
+  console.log('-> server recv: two')
+  res.send(res_back)
+})
 
-  
-  }else{
-      response.sendStatus(500);
-  }
-  response.sendStatus(204);
-});
-
-
-
+app.get("/init2", (req, res) => {
+  console.log('-< server recv: init2')
+  res.send(res_back)
+})
 
 
 //socket test
@@ -83,24 +40,15 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('user disconnected');
   });
-  setInterval(()=>{
-    socket.emit('number', parseInt(Math.random()*10));
-  }, 1000);
-
 });
 
-dbo.connectToDatabase(function(err){
-  if(err){
-    console.error(err);
-    process.exit();
+db.connectDatabase((err) => {
+  if (err) {
+    console.error(err)
+    process.exit() // nodejs
   }
-
+  
   http.listen(port,()=>{
-    console.log("Listening on port ", port);
+    console.log("Server Listening on port ", port);
   });
-
-});
-
-
-//this is only needed for Cloud foundry 
-//require("cf-deployment-tracker-client").track();
+})

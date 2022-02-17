@@ -8,12 +8,12 @@
     "express": "^4.14.1",
     "http-post": "^0.1.1",
     "http-proxy": "^1.8.1",
-    "mangodb": "^1.0.0",
-    "socket.io": "^2.3.0"
+    "mongodb": "^4.3.1",
+    "socket.io": "^4.4.1"
   },
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "set PORT=6060 && nodemon server.js",
     "start-dev": "nodemon server.js"
   },
   "repository": {
